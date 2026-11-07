@@ -4,7 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>UNKNOWN</title>
-<meta name="description" content="UNKNOWN — Information Security Club, University of Ulsan">
+<meta name="description" content="울산대학교 정보보안 동아리 UNKNOWN — Information Security Club, University of Ulsan">
+<meta name="theme-color" content="#060707">
+<!-- link preview (KakaoTalk, Instagram, Slack, X …) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="UNKNOWN">
+<meta property="og:title" content="UNKNOWN — 울산대학교 정보보안 동아리">
+<meta property="og:description" content="Information Security Club, University of Ulsan. We look into what stays unseen.">
+<meta property="og:url" content="https://unknown-uou.vercel.app/">
+<meta property="og:image" content="https://unknown-uou.vercel.app/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<!-- icons -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/logo.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=IBM+Plex+Sans+KR:wght@300;400;600&display=swap" rel="stylesheet">
@@ -37,7 +53,8 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
 nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;justify-content:space-between;align-items:center;
   padding:18px clamp(16px,4vw,48px);font-family:var(--mono);font-size:12px;letter-spacing:.08em;
   background:linear-gradient(var(--bg) 30%,transparent);}
-nav .logo{color:var(--hi);font-weight:700}
+nav .logo{color:var(--hi);font-weight:700;display:inline-flex;align-items:center;gap:10px}
+nav .logo img{height:24px;width:auto;display:block}
 nav .logo span{color:var(--acc)}
 nav ul{display:flex;gap:clamp(12px,3vw,32px);list-style:none}
 nav a{color:var(--mute);transition:color .2s}
@@ -207,7 +224,7 @@ body{word-break:keep-all;overflow-wrap:break-word}
 <body>
 
 <nav>
-  <a href="#hero" class="logo">UNKNOWN<span>_</span></a>
+  <a href="#hero" class="logo"><img src="logo.svg" alt="" width="22" height="25">UNKNOWN<span>_</span></a>
   <ul>
     <li><a href="#who">whoami</a></li>
     <li><a href="#what">activities</a></li>
