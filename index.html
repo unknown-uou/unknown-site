@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNKNOWN</title>
+<meta name="description" content="UNKNOWN — Information Security Club, University of Ulsan">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&family=IBM+Plex+Sans+KR:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060707;
+  --bg2:#0b0d0d;
+  --line:#1b2120;
+  --dim:#3a4644;
+  --mute:#7d8b88;
+  --text:#c9d4d1;
+  --hi:#e9f2ef;
+  --acc:#3dff9a;       /* signal green */
+  --red:#ff3b4e;       /* warning red */
+  --mono:'JetBrains Mono','IBM Plex Sans KR',ui-monospace,monospace;
+  --sans:'IBM Plex Sans KR',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.75;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--acc);color:#000}
+a{color:inherit;text-decoration:none}
+
+/* scanlines + vignette over everything */
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px),
+             radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.65));}
+
+/* ---------- NAV ---------- */
+nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;justify-content:space-between;align-items:center;
+  padding:18px clamp(16px,4vw,48px);font-family:var(--mono);font-size:12px;letter-spacing:.08em;
+  background:linear-gradient(var(--bg) 30%,transparent);}
+nav .logo{color:var(--hi);font-weight:700}
+nav .logo span{color:var(--acc)}
+nav ul{display:flex;gap:clamp(12px,3vw,32px);list-style:none}
+nav a{color:var(--mute);transition:color .2s}
+nav a:hover{color:var(--acc)}
+nav ul a::before{content:"./";color:var(--dim)}
+@media(max-width:560px){nav ul li:nth-child(2){display:none}}
+
+/* ---------- HERO ---------- */
+#hero{position:relative;height:100vh;min-height:560px;overflow:hidden;cursor:crosshair}
+#field{position:absolute;inset:0;width:100%;height:100%}
+.hero-inner{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;
+  padding:0 clamp(16px,6vw,96px);pointer-events:none}
+.boot{font-family:var(--mono);font-size:clamp(10.5px,1.2vw,13px);color:var(--mute);min-height:7.5em;margin-bottom:24px;white-space:pre-wrap;text-align:left;width:min(46ch,100%)}
+.boot .ok{color:var(--acc)}
+.boot .warn{color:var(--red)}
+h1.title{font-family:var(--mono);font-weight:800;font-size:clamp(52px,13vw,190px);line-height:.9;letter-spacing:-.04em;color:var(--hi);
+  text-shadow:0 0 40px rgba(61,255,154,.08);position:relative}
+h1.title .glitch{position:relative;display:inline-block}
+h1.title .glitch::before,h1.title .glitch::after{content:attr(data-text);position:absolute;inset:0;opacity:0}
+h1.title.live .glitch::before{color:var(--red);animation:g1 3.2s infinite steps(1)}
+h1.title.live .glitch::after{color:var(--acc);animation:g2 3.2s infinite steps(1)}
+@keyframes g1{0%,92%,100%{opacity:0;transform:none}93%{opacity:.8;transform:translate(-4px,2px);clip-path:inset(20% 0 55% 0)}95%{opacity:.8;transform:translate(3px,-1px);clip-path:inset(60% 0 10% 0)}}
+@keyframes g2{0%,94%,100%{opacity:0;transform:none}95%{opacity:.7;transform:translate(4px,-2px);clip-path:inset(10% 0 70% 0)}97%{opacity:.7;transform:translate(-3px,1px);clip-path:inset(45% 0 30% 0)}}
+.sub{margin-top:28px;font-family:var(--mono);font-size:clamp(12px,1.4vw,15px);color:var(--hi);max-width:640px;letter-spacing:.04em}
+.sub b{color:var(--acc);font-weight:400}
+.caret{display:inline-block;width:.6em;height:1.1em;background:var(--acc);vertical-align:-.2em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.hud{position:absolute;bottom:24px;left:clamp(16px,6vw,96px);right:clamp(16px,6vw,96px);display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.1em;pointer-events:none}
+.hud .scroll{color:var(--mute);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+@media(max-width:560px){.hud .coords{display:none}}
+
+/* ---------- SECTIONS ---------- */
+section.block{position:relative;padding:clamp(80px,12vw,160px) clamp(16px,6vw,96px);border-top:1px solid var(--line)}
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:clamp(40px,6vw,72px);flex-wrap:wrap}
+.sec-no{font-family:var(--mono);font-size:12px;color:var(--acc)}
+.sec-cmd{font-family:var(--mono);font-size:clamp(13px,1.4vw,15px);color:var(--mute)}
+.sec-cmd::before{content:"root@unknown:~# ";color:var(--dim)}
+h2{font-family:var(--mono);font-weight:700;font-size:clamp(34px,6vw,76px);line-height:1;letter-spacing:-.03em;color:var(--hi);width:100%;margin-top:8px}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s ease,transform .9s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* who */
+.who{display:grid;grid-template-columns:1fr 1.3fr;gap:clamp(32px,6vw,96px)}
+.who .slogan{font-family:var(--mono);font-size:clamp(20px,2.6vw,32px);color:var(--hi);line-height:1.35;font-weight:400}
+.who .slogan em{font-style:normal;color:var(--acc)}
+.who .body p{margin-bottom:1.2em;font-size:clamp(15px,1.25vw,17px);color:var(--text)}
+.who .body p.redact{font-family:var(--mono);font-size:13px;color:var(--dim)}
+.redact i{background:var(--text);color:transparent;font-style:normal;transition:background .3s,color .3s;cursor:help}
+.redact i:hover{background:transparent;color:var(--red)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:48px}
+.stats div{background:var(--bg);padding:20px}
+.stats b{display:block;font-family:var(--mono);font-size:clamp(26px,3vw,40px);color:var(--hi);font-weight:700}
+.stats span{font-family:var(--mono);font-size:11px;color:var(--mute);letter-spacing:.08em}
+@media(max-width:860px){.who{grid-template-columns:1fr}}
+
+/* what */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.card{background:var(--bg);padding:32px 26px 40px;position:relative;overflow:hidden;transition:background .3s}
+.card::before{content:"";position:absolute;left:0;top:0;height:2px;width:0;background:var(--acc);transition:width .5s}
+.card:hover{background:var(--bg2)}
+.card:hover::before{width:100%}
+.card .idx{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.card h3{font-family:var(--mono);font-size:22px;color:var(--hi);margin:56px 0 6px;font-weight:700}
+.card .tag{font-family:var(--mono);font-size:11px;color:var(--acc);margin-bottom:18px;display:block}
+.card p{font-size:14.5px;color:var(--mute)}
+.card:hover p{color:var(--text)}
+.card .perm{position:absolute;top:30px;right:24px;font-family:var(--mono);font-size:10px;color:var(--dim)}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.cards{grid-template-columns:1fr}}
+
+/* archive */
+.archive{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.shot{aspect-ratio:4/3;border:1px solid var(--line);background:
+  repeating-linear-gradient(45deg,#0c0f0e 0 8px,#090b0b 8px 16px);position:relative;overflow:hidden;filter:grayscale(1) contrast(1.1);transition:filter .4s}
+.shot:nth-child(1),.shot:nth-child(6){grid-column:span 2;aspect-ratio:auto}
+.shot img{width:100%;height:100%;object-fit:cover;opacity:.55;transition:opacity .4s}
+.shot:hover{filter:none}
+.shot:hover img{opacity:1}
+.shot .meta{position:absolute;left:10px;bottom:8px;font-family:var(--mono);font-size:10px;color:var(--mute)}
+.shot .ph{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.15em}
+@media(max-width:760px){.archive{grid-template-columns:repeat(2,1fr)}.shot:nth-child(1),.shot:nth-child(6){grid-column:span 2;aspect-ratio:16/9}}
+
+/* contact */
+.contact{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(32px,6vw,96px);align-items:end}
+.join{font-family:var(--mono);font-weight:800;font-size:clamp(40px,8vw,112px);line-height:.95;letter-spacing:-.04em;color:var(--hi)}
+.join span{color:var(--acc)}
+.cta{display:inline-flex;align-items:center;gap:14px;margin-top:40px;padding:16px 26px;border:1px solid var(--acc);color:var(--acc);
+  font-family:var(--mono);font-size:14px;letter-spacing:.06em;transition:background .25s,color .25s}
+.cta:hover{background:var(--acc);color:#000}
+.links{list-style:none;border-top:1px solid var(--line)}
+.links li{border-bottom:1px solid var(--line)}
+.links a{display:flex;justify-content:space-between;gap:16px;padding:18px 0;font-family:var(--mono);font-size:14px;transition:padding .25s,color .25s}
+.links a span:first-child{color:var(--dim);font-size:11px;letter-spacing:.12em}
+.links a:hover{color:var(--acc);padding-left:10px}
+@media(max-width:860px){.contact{grid-template-columns:1fr}}
+
+footer{padding:28px clamp(16px,6vw,96px);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11px;color:var(--dim)}
+footer .hash{word-break:break-all}
+
+/* tracks */
+.tracks{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px}
+.tracks span{font-family:var(--mono);font-size:12px;color:var(--mute);border:1px solid var(--line);padding:6px 12px;transition:color .2s,border-color .2s}
+.tracks span:hover{color:var(--acc);border-color:var(--acc)}
+
+/* record log */
+.log{font-family:var(--mono)}
+.log .row{display:grid;grid-template-columns:90px 1.2fr 1.4fr;gap:20px;padding:16px 4px;border-bottom:1px solid var(--line);font-size:14px;align-items:baseline;transition:background .2s,padding .2s}
+.log .row:hover{background:var(--bg2);padding-left:12px}
+.log .cat{color:var(--dim);font-size:11px;letter-spacing:.08em}
+.log .ev{color:var(--hi)}
+.log .res{color:var(--mute)}
+.log .res small{color:var(--dim);font-size:11px}
+.log .row.hl .cat,.log .row.hl .res{color:var(--acc)}
+.log+.log{margin-top:40px}
+.log .year{font-family:var(--mono);font-size:clamp(22px,2.4vw,30px);font-weight:700;color:var(--acc);padding:0 4px 12px;border-bottom:1px solid var(--line);margin-top:-1px}
+.log.support .row{grid-template-columns:140px 1fr}
+.log.support .res{display:none}
+@media(max-width:760px){.log.support .row{grid-template-columns:1fr}}
+.note{margin-top:24px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+@media(max-width:760px){.log .row{grid-template-columns:1fr;gap:4px}}
+
+/* perks */
+.perks{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.perk{background:var(--bg);padding:36px 32px}
+.perk .k{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.perk .k::after{content:" =";color:var(--dim)}
+.perk b{display:block;font-family:var(--mono);font-size:clamp(28px,3.4vw,44px);color:var(--acc);font-weight:700;margin:6px 0 16px}
+.perk p{font-size:15px;color:var(--mute);max-width:52ch}
+@media(max-width:760px){.perks{grid-template-columns:1fr}}
+
+/* console mockups */
+.mock{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.win{background:#070909;border:1px solid var(--line);display:flex;flex-direction:column;min-height:220px;overflow:hidden;transition:border-color .3s}
+.win:hover{border-color:#2a3a35}
+.win.w2{grid-column:span 2}
+.win.w4{grid-column:1/-1}
+#m-asm,#m-pkt{height:300px}
+.bar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.bar i{width:8px;height:8px;border-radius:50%;background:#1d2422}
+.bar i:first-child{background:#3a1a1e}
+.bar span{margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.term{flex:1;margin:0;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.6;color:var(--mute);white-space:pre;overflow:hidden;height:220px}
+.term .g{color:var(--acc)} .term .r{color:var(--red)} .term .w{color:var(--hi)} .term .d{color:var(--dim)}
+.term .cur{background:rgba(61,255,154,.12);color:var(--hi);display:inline-block;width:100%}
+.hex{font-size:10.5px}
+#m-asm{font-size:10.5px;tab-size:2}
+#m-net{flex:1;width:100%;height:220px;display:block}
+.board{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:14px}
+.board .col{display:flex;flex-direction:column;gap:8px}
+.board .h{font-family:var(--mono);font-size:11px;color:var(--mute);letter-spacing:.1em;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.board .c{font-family:var(--mono);font-size:12px;color:var(--dim);border:1px solid var(--line);padding:8px 6px;text-align:center;transition:all .4s}
+.board .c.ok{color:#000;background:var(--acc);border-color:var(--acc)}
+.board .c.try{color:var(--red);border-color:var(--red)}
+@media(max-width:900px){.mock{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.mock{grid-template-columns:1fr}.win.w2,.win.w4{grid-column:auto}.board{grid-template-columns:repeat(3,1fr)}.board .col:nth-child(n+4){display:none}}
+/* text: justify, never split a word */
+body{word-break:keep-all;overflow-wrap:break-word}
+.who .body p,.card p{text-align:justify;text-justify:inter-word}
+.log .ev,.log .res{word-break:keep-all}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#hero" class="logo">UNKNOWN<span>_</span></a>
+  <ul>
+    <li><a href="#who">whoami</a></li>
+    <li><a href="#what">activities</a></li>
+    <li><a href="#record">record</a></li>
+    <li><a href="#contact">contact</a></li>
+  </ul>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header id="hero">
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <div class="boot" id="boot"></div>
+    <h1 class="title" id="title"><span class="glitch" data-text="UNKNOWN">UNKNOWN</span></h1>
+    <p class="sub">Information Security Club, University of Ulsan.<br>We look into <b>what stays unseen</b>.<span class="caret"></span></p>
+  </div>
+  <div class="hud">
+    <span class="coords" id="coords">X:0000 Y:0000 · SIGNAL --</span>
+    <span class="scroll">[ SCROLL TO DECRYPT ↓ ]</span>
+  </div>
+</header>
+
+<!-- ================= WHO ================= -->
+<section class="block" id="who">
+  <div class="sec-head reveal">
+    <span class="sec-no">[01]</span><span class="sec-cmd">whoami</span>
+    <h2>WHO WE ARE</h2>
+  </div>
+  <div class="who">
+    <div class="reveal">
+      <div class="stats" style="margin-top:0">
+        <div><b data-count="2013">0</b><span>KISA 지원대상 첫 선정</span></div>
+        <div><b data-count="15">0</b><span>수상 (2023~2026)</span></div>
+        <div><b data-count="3">0</b><span>과기정통부 장관상</span></div>
+      </div>
+    </div>
+    <div class="body reveal">
+      <p>UNKNOWN은 울산대학교 정보보안 동아리입니다. 웹, 시스템, 네트워크, 포렌식, 리버싱, 암호학, 취약점 분석까지 공부하고, 해킹 대회와 프로젝트로 직접 부딪혀 봅니다.</p>
+      <p>억지로 가족 같은 분위기를 만들지도 않습니다. 각자 자기 분야에 집중하고, 필요할 때 자연스럽게 돕습니다. 적당한 거리감, 확실한 결속력입니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHAT ================= -->
+<section class="block" id="what">
+  <div class="sec-head reveal">
+    <span class="sec-no">[02]</span><span class="sec-cmd">ls -la ./activities</span>
+    <h2>WHAT WE DO</h2>
+  </div>
+  <div class="tracks reveal">
+    <span>./web</span><span>./system</span><span>./network</span><span>./forensics</span><span>./reversing</span><span>./crypto</span><span>./vuln-analysis</span>
+  </div>
+  <div class="cards reveal">
+    <article class="card">
+      <span class="idx">0x01</span><span class="perm">drwxr-x---</span>
+      <h3>Study</h3><span class="tag">이론 · 문제 풀이 · 실습</span>
+      <p>관심 분야별 스터디에서 이론 정리, 문제 풀이, 실습까지 같이 합니다. 수상 전에, 공부부터 합니다.</p>
+    </article>
+    <article class="card">
+      <span class="idx">0x02</span><span class="perm">drwxr-x---</span>
+      <h3>Seminar</h3><span class="tag">2026 하계 세미나 12강</span>
+      <p>물리계층 보안, SecOps, 블록체인, AI Agent와 MCP까지. 강의 내용은 부원들이 블로그에 직접 정리했습니다.</p>
+    </article>
+    <article class="card">
+      <span class="idx">0x03</span><span class="perm">drwxr-x---</span>
+      <h3>Build</h3><span class="tag">내부 경진대회</span>
+      <p>직접 만든 프로젝트를 팀별로 발표하고 경쟁하는 내부 경진대회를 엽니다.</p>
+    </article>
+    <article class="card">
+      <span class="idx">0x04</span><span class="perm">drwxr-x---</span>
+      <h3>KUCIS</h3><span class="tag">2026 지원사업 선정</span>
+      <p>전국 대학 정보보호 동아리 지원 사업. 실습 교육, 세미나, 연구 활동, 기업 탐방까지 지원받습니다.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ================= RECORD ================= -->
+<section class="block" id="record">
+  <div class="sec-head reveal">
+    <span class="sec-no">[03]</span><span class="sec-cmd">cat ./hall_of_fame.log</span>
+    <h2>TRACK RECORD</h2>
+  </div>
+  <div class="log reveal">
+    <div class="year">2026</div>
+    <div class="row"><span class="cat">[CTF]</span><span class="ev">대구·경북 사이버공격 방어대회</span><span class="res">일반부문 특별상</span></div>
+    <div class="row"><span class="cat">[CTF]</span><span class="ev">경기대·국민대·중앙대 연합 CTF</span><span class="res">3위</span></div>
+  </div>
+  <div class="log reveal">
+    <div class="year">2025</div>
+    <div class="row"><span class="cat">[AWARD]</span><span class="ev">시큐리티 캠퍼스 동아리</span><span class="res">우수상</span></div>
+    <div class="row"><span class="cat">[CTF]</span><span class="ev">제2회 울산모의해킹대회 CTF 부문</span><span class="res">최우수상</span></div>
+    <div class="row"><span class="cat">[CTF]</span><span class="ev">제2회 울산모의해킹대회 침해사고 부문</span><span class="res">대상</span></div>
+    <div class="row"><span class="cat">[BUG]</span><span class="ev">2025 부산 버그바운티</span><span class="res">우수상</span></div>
+  </div>
+  <div class="log reveal">
+    <div class="year">2024</div>
+    <div class="row"><span class="cat">[AWARD]</span><span class="ev">KISA 정보보호 IR 밋업데이</span><span class="res">한국인터넷진흥원장상</span></div>
+    <div class="row"><span class="cat">[AWARD]</span><span class="ev">KISA 정보보호 IR 밋업데이</span><span class="res">부산정보산업진흥원장상</span></div>
+    <div class="row"><span class="cat">[AWARD]</span><span class="ev">지역거점 정보보호 클러스터 구축 사업 시큐리티 캠퍼스 운영 프로그램</span><span class="res">최우수상</span></div>
+    <div class="row"><span class="cat">[EDU]</span><span class="ev">KITRI Best of the Best 12기 보안컨설팅 트랙</span><span class="res">TOP10 · 과학기술정보통신부 장관상 1명</span></div>
+    <div class="row"><span class="cat">[EDU]</span><span class="ev">KITRI WhiteHat School 2기</span><span class="res">Top 20 1명</span></div>
+    <div class="row"><span class="cat">[EDU]</span><span class="ev">KITRI WhiteHat School 1기</span><span class="res">Top 20 1명</span></div>
+    <div class="row"><span class="cat">[DEV]</span><span class="ev">교내 프로그래밍 경진대회</span><span class="res">최우수상 1명</span></div>
+  </div>
+  <div class="log reveal">
+    <div class="year">2023</div>
+    <div class="row"><span class="cat">[AWARD]</span><span class="ev">2023 정보보호 정책 제안 공모전</span><span class="res">과학기술정보통신부 장관상(대상) 1명</span></div>
+    <div class="row"><span class="cat">[EDU]</span><span class="ev">KITRI Best of the Best 11기</span><span class="res">Whitehat 10 · 과학기술정보통신부 장관상 1명</span></div>
+  </div>
+  <div class="log reveal support">
+    <div class="year">SUPPORT</div>
+    <div class="row"><span class="cat">[2026]</span><span class="ev">KUCIS 대학 정보보호 동아리 지원사업 선정</span><span class="res"></span></div>
+    <div class="row"><span class="cat">[2019 ~ 현재]</span><span class="ev">울산정보보호지원센터 지역권 대학 동아리 지원대상 선정</span><span class="res"></span></div>
+    <div class="row"><span class="cat">[2014]</span><span class="ev">KISA 대학 정보보호 동아리 지원대상 선정</span><span class="res"></span></div>
+    <div class="row"><span class="cat">[2013]</span><span class="ev">KISA 대학 정보보호 동아리 지원대상 선정</span><span class="res"></span></div>
+  </div>
+</section>
+
+<!-- ================= CONSOLE (hacker mockups) ================= -->
+<section class="block" id="console">
+  <div class="sec-head reveal">
+    <span class="sec-no">[04]</span><span class="sec-cmd">tmux attach -t unknown</span>
+    <h2>LIVE CONSOLE</h2>
+  </div>
+  <div class="mock reveal">
+    <div class="win w2">
+      <div class="bar"><i></i><i></i><i></i><span>nmap -sS -sV -p- 10.0.13.37</span></div>
+      <pre class="term" id="m-scan"></pre>
+    </div>
+    <div class="win">
+      <div class="bar"><i></i><i></i><i></i><span>xxd -c 8 ./vuln</span></div>
+      <pre class="term hex" id="m-hex"></pre>
+    </div>
+    <div class="win">
+      <div class="bar"><i></i><i></i><i></i><span>network graph &mdash; 12 hosts</span></div>
+      <canvas id="m-net"></canvas>
+    </div>
+    <div class="win w2">
+      <div class="bar"><i></i><i></i><i></i><span>gdb -q ./vuln</span></div>
+      <pre class="term" id="m-asm"></pre>
+    </div>
+    <div class="win w2">
+      <div class="bar"><i></i><i></i><i></i><span>tcpdump -i eth0 -nqt</span></div>
+      <pre class="term" id="m-pkt"></pre>
+    </div>
+    <div class="win w4">
+      <div class="bar"><i></i><i></i><i></i><span>ctf_board &mdash; practice set</span></div>
+      <div class="board" id="m-board"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONTACT ================= -->
+<section class="block" id="contact">
+  <div class="sec-head reveal">
+    <span class="sec-no">[05]</span><span class="sec-cmd">ssh new_member@unknown</span>
+    <h2>CONTACT</h2>
+  </div>
+  <div class="contact">
+    <div class="reveal">
+      <p class="join">ACCESS<br>REQUEST<span>_</span></p>
+      <a class="cta" href="https://open.kakao.com/o/svJFx7hh" target="_blank" rel="noopener">&gt; 가입 문의하기 ↗</a>
+    </div>
+    <ul class="links reveal">
+      <li><a href="https://www.instagram.com/uou_unknown/" target="_blank" rel="noopener"><span>INSTAGRAM</span><span>@uou_unknown ↗</span></a></li>
+      <li><a href="https://open.kakao.com/o/svJFx7hh" target="_blank" rel="noopener"><span>KAKAO</span><span>각종 문의 오픈채팅 ↗</span></a></li>
+      <li><a href="https://ict.ulsan.ac.kr/ict/6736" target="_blank" rel="noopener"><span>UOU</span><span>학부 동아리 소개 ↗</span></a></li>
+      <li><a href="https://github.com/unknown-uou" target="_blank" rel="noopener"><span>GITHUB</span><span>github.com/unknown-uou ↗</span></a></li>
+      <li><a href="#" target="_blank" rel="noopener"><span>HOMECOMING</span><span>일정 추후 안내</span></a></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <span>&copy; 2026 UNKNOWN &middot; University of Ulsan</span>
+  <span class="hash">sha256: 7f3a&hellip;e91c &mdash; connection terminated.</span>
+</footer>
+
+<script>
+/* ---------- 1. Hero: cipher field that decrypts around the cursor ---------- */
+(() => {
+  const cv = document.getElementById('field'), ctx = cv.getContext('2d');
+  const hero = document.getElementById('hero'), coords = document.getElementById('coords');
+  const CH = '0123456789ABCDEF<>/{}[]#$%&*+=?;:'.split('');
+  const MSG = 'UNKNOWN'; // hidden word revealed under the cursor
+  let W, H, cols, rows, cell, grid = [], mouse = {x:-9999, y:-9999, tx:-9999, ty:-9999}, pulses = [];
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function size(){
+    W = hero.clientWidth; H = hero.clientHeight;
+    cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    cell = W < 600 ? 14 : 18;
+    cols = Math.ceil(W/cell); rows = Math.ceil(H/cell);
+    grid = Array.from({length: cols*rows}, (_, i) => ({c: CH[(Math.random()*CH.length)|0], t: Math.random()*100}));
+    ctx.font = `${cell*0.62}px JetBrains Mono, monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  }
+  size(); addEventListener('resize', size);
+
+  function move(x, y){
+    const r = hero.getBoundingClientRect();
+    mouse.tx = x - r.left; mouse.ty = y - r.top;
+    coords.textContent = `X:${String(Math.round(mouse.tx)).padStart(4,'0')} Y:${String(Math.round(mouse.ty)).padStart(4,'0')} · SIGNAL ${(60+Math.random()*39|0)}%`;
+  }
+  hero.addEventListener('mousemove', e => move(e.clientX, e.clientY));
+  hero.addEventListener('touchmove', e => move(e.touches[0].clientX, e.touches[0].clientY), {passive:true});
+  hero.addEventListener('mouseleave', () => { mouse.tx = -9999; mouse.ty = -9999; });
+  hero.addEventListener('click', e => { const r = hero.getBoundingClientRect(); pulses.push({x:e.clientX-r.left, y:e.clientY-r.top, r:0}); });
+
+  // idle drift when no mouse (and on mobile before touch)
+  let t0 = performance.now();
+  function frame(now){
+    const t = (now - t0)/1000;
+    if (mouse.tx < -9000){ mouse.x += ((W*(.55+.25*Math.sin(t*.4))) - mouse.x)*.02; mouse.y += ((H*(.5+.25*Math.cos(t*.31))) - mouse.y)*.02; if(mouse.x<-9000){mouse.x=W*.6;mouse.y=H*.5;} }
+    else { mouse.x += (mouse.tx - mouse.x)*.18; mouse.y += (mouse.ty - mouse.y)*.18; }
+
+    ctx.fillStyle = '#060707'; ctx.fillRect(0,0,W,H);
+    const R = Math.min(W,H) * (W < 600 ? .32 : .22);
+    pulses.forEach(p => p.r += 14); pulses = pulses.filter(p => p.r < Math.max(W,H));
+
+    for (let y = 0; y < rows; y++){
+      for (let x = 0; x < cols; x++){
+        const g = grid[y*cols + x];
+        const px = x*cell + cell/2, py = y*cell + cell/2;
+        const d = Math.hypot(px - mouse.x, py - mouse.y);
+        let a = .07, col = '125,139,136';
+        if (Math.random() < .004) g.c = CH[(Math.random()*CH.length)|0];
+        if (d < R){
+          const k = 1 - d/R;
+          a = .07 + k*.85;
+          if (Math.random() < k*.25) g.c = CH[(Math.random()*CH.length)|0];
+          col = k > .55 ? '61,255,154' : '160,190,180';
+          // hidden word in the cipher, readable only near the cursor
+          if (k > .3 && y % 6 === 3){ g.c = MSG[(x + (y/6|0)) % MSG.length]; }
+        }
+        for (const p of pulses){ const pd = Math.abs(Math.hypot(px-p.x, py-p.y) - p.r); if (pd < cell*1.5){ a = Math.max(a, .9*(1-pd/(cell*1.5))); col='255,59,78'; g.c = CH[(Math.random()*CH.length)|0]; } }
+        ctx.fillStyle = `rgba(${col},${a})`;
+        ctx.fillText(g.c, px, py);
+      }
+    }
+    // soft green glow under cursor
+    const grd = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, R);
+    grd.addColorStop(0,'rgba(61,255,154,.05)'); grd.addColorStop(1,'rgba(61,255,154,0)');
+    ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ---------- 2. Boot log + title decrypt (replays when you come back to the top) ---------- */
+(() => {
+  const boot = document.getElementById('boot'), title = document.getElementById('title');
+  const el = title.querySelector('.glitch'), target = 'UNKNOWN', pool = '#$%&@!?<>/\\01ABCDEFXZ';
+  const lines = [
+    ['[    0.000] establishing tunnel ..... ', 'ok', 'OK'],
+    ['[    0.214] routing via relays ...... ', 'ok', 'OK'],
+    ['[    0.502] verifying identity ...... ', 'warn', 'UNKNOWN'],
+    ['[    0.733] access granted. welcome.', '', ''],
+  ];
+  let run = 0, scrambler = null;
+  const rnd = () => pool[(Math.random()*pool.length)|0];
+  function play(){
+    const me = ++run; let i = 0;
+    boot.innerHTML = ''; title.classList.remove('live');
+    clearInterval(scrambler);
+    // title scrambles the whole time the log is typing
+    scrambler = setInterval(() => { el.textContent = target.split('').map(rnd).join(''); }, 50);
+    (function next(){
+      if (me !== run) return;
+      if (i >= lines.length){ decrypt(me); return; }
+      const [txt, cls, tag] = lines[i++]; let j = 0;
+      const row = document.createElement('div'); boot.appendChild(row);
+      const iv = setInterval(() => {
+        if (me !== run){ clearInterval(iv); return; }
+        row.textContent = txt.slice(0, j += 2);
+        if (j >= txt.length){ clearInterval(iv); if (tag){ const s = document.createElement('span'); s.className = cls; s.textContent = tag; row.appendChild(s); } setTimeout(next, 260); }
+      }, 18);
+    })();
+  }
+  function decrypt(me){
+    clearInterval(scrambler);
+    let f = 0;
+    const iv = setInterval(() => {
+      if (me !== run){ clearInterval(iv); return; }
+      el.textContent = target.split('').map((c, k) => k < f/6 ? c : rnd()).join('');
+      if (++f > target.length*6){ clearInterval(iv); el.textContent = target; title.classList.add('live'); }
+    }, 55);
+  }
+  // play on load, and again every time the hero comes back into view
+  let seen = false;
+  new IntersectionObserver(([e]) => {
+    if (e.isIntersecting && e.intersectionRatio > .6){ if (!seen){ seen = true; play(); } }
+    else if (!e.isIntersecting || e.intersectionRatio < .2){ seen = false; }
+  }, {threshold:[0,.2,.6]}).observe(document.getElementById('hero'));
+  // click the UNKNOWN logo in the nav to replay
+  document.querySelector('nav .logo').addEventListener('click', () => { seen = true; setTimeout(play, 400); });
+})();
+
+/* ---------- 3. Scroll reveal + counters ---------- */
+(() => {
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add('in');
+    e.target.querySelectorAll('[data-count]').forEach(b => {
+      const end = +b.dataset.count, start = end > 1000 ? end - 30 : 0, t0 = performance.now();
+      (function tick(n){ const p = Math.min((n - t0)/1200, 1); b.textContent = Math.round(start + (end-start)*(1-Math.pow(1-p,3))); if (p < 1) requestAnimationFrame(tick); })(t0);
+    });
+    io.unobserve(e.target);
+  }), {threshold: .15});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+})();
+
+/* ---------- 4. Console mockups (formats follow the real tools' output) ---------- */
+(() => {
+  const vis = new Set();
+  const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? vis.add(e.target.id) : vis.delete(e.target.id)));
+  const R = (n) => (Math.random()*n)|0, h2 = (v) => v.toString(16).padStart(2,'0');
+
+  /* nmap -sS -sV -p- : same columns and wording as real nmap */
+  const scan = document.getElementById('m-scan'); io.observe(scan);
+  const SL = [
+    '<span class="d">#</span> <span class="w">nmap -sS -sV -p- 10.0.13.37</span>',
+    'Starting Nmap 7.94 ( https://nmap.org )',
+    'Nmap scan report for 10.0.13.37',
+    'Host is up (0.0021s latency).',
+    'Not shown: 65530 closed tcp ports (reset)',
+    'PORT     STATE    SERVICE    VERSION',
+    '22/tcp   <span class="g">open</span>     ssh        OpenSSH 8.9p1 Ubuntu',
+    '80/tcp   <span class="g">open</span>     http       nginx 1.18.0 (Ubuntu)',
+    '443/tcp  <span class="g">open</span>     ssl/http   nginx 1.18.0 (Ubuntu)',
+    '3306/tcp <span class="r">filtered</span> mysql',
+    '8080/tcp <span class="g">open</span>     http-proxy',
+    'Nmap done: 1 IP address (1 host up) scanned in 41.27 seconds',
+  ];
+  let si = 0, sbuf = [];
+  setInterval(() => {
+    if (!vis.has('m-scan')) return;
+    if (si >= SL.length + 6){ si = 0; sbuf = []; }
+    if (si < SL.length) sbuf.push(SL[si]);
+    si++;
+    scan.innerHTML = sbuf.join('\n') + (si <= SL.length ? '\n<span class="g">&#9608;</span>' : '');
+  }, 380);
+
+  /* xxd -c 8 : "offset: 2-byte groups  ascii" — file starts with a real ELF64 header */
+  const hex = document.getElementById('m-hex'); io.observe(hex);
+  const enc = (t) => [...t].map(c => c.charCodeAt(0));
+  const BYTES = [
+    0x7f,0x45,0x4c,0x46,0x02,0x01,0x01,0x00, 0,0,0,0,0,0,0,0,          // \x7fELF, 64-bit, little-endian
+    0x02,0x00,0x3e,0x00,0x01,0x00,0x00,0x00, 0x50,0x10,0x40,0,0,0,0,0, // ET_EXEC, x86-64, entry 0x401050
+    ...enc('/lib64/ld-linux-x86-64.so.2\0'), ...enc('libc.so.6\0strcpy\0puts\0'),
+    ...enc('GLIBC_2.2.5\0GLIBC_2.34\0'), ...enc('flag{st4ck_sm4sh}\0'), ...enc('main\0vuln\0.text\0.bss\0')
+  ];
+  while (BYTES.length % 8) BYTES.push(0);
+  let off = 0;
+  const row = () => {
+    const o = off % BYTES.length, b = BYTES.slice(o, o+8);
+    const g = [0,2,4,6].map(i => h2(b[i]) + h2(b[i+1])).join(' ');
+    const a = b.map(v => v > 31 && v < 127 ? String.fromCharCode(v) : '.').join('').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    off += 8;
+    return `<span class="d">${o.toString(16).padStart(8,'0')}:</span> ${g}  <span class="${/flag|4ck|sm4/.test(a)?'g':'w'}">${a}</span>`;
+  };
+  let hrows = []; for (let i = 0; i < 13; i++) hrows.push(row());
+  hex.innerHTML = hrows.join('\n');
+  setInterval(() => { if (!vis.has('m-hex')) return; hrows.shift(); hrows.push(row()); hex.innerHTML = hrows.join('\n'); }, 220);
+
+  /* gdb disassemble (Intel syntax): real instruction lengths -> real offsets */
+  const asm = document.getElementById('m-asm'); io.observe(asm);
+  const AL = [ // [offset, instruction]
+    [0,'push   rbp'],[1,'mov    rbp,rsp'],[4,'sub    rsp,0x40'],[8,'mov    QWORD PTR [rbp-0x38],rdi'],
+    [12,'lea    rax,[rbp-0x30]'],[16,'mov    rdx,QWORD PTR [rbp-0x38]'],[20,'mov    rsi,rdx'],
+    [23,'mov    rdi,rax'],[26,'call   0x401030 &lt;strcpy@plt&gt;'],[31,'nop'],[32,'leave'],[33,'ret']
+  ];
+  let ip = 0;
+  setInterval(() => {
+    if (!vis.has('m-asm')) return;
+    const lines = AL.map(([o,t],k) => {
+      const ad = '0x' + (0x401136 + o).toString(16).padStart(16,'0');
+      const l = `${ad} &lt;+${o}&gt;:\t${t}`;
+      return k === ip ? `<span class="cur"><span class="g">=&gt;</span> ${l}</span>` : `   ${l}`;
+    });
+    asm.innerHTML = '<span class="d">(gdb)</span> disas vuln\nDump of assembler code for function vuln:\n' + lines.join('\n') + '\nEnd of assembler dump.' +
+      '\n<span class="r">// buf = rbp-0x30 (48B) &rarr; RIP at offset 56</span>';
+    ip = (ip + 1) % AL.length;
+  }, 650);
+
+  /* tcpdump -nqt : "IP src.port > dst.port: tcp|UDP, length N" */
+  const pkt = document.getElementById('m-pkt'); io.observe(pkt);
+  const ip4 = () => `10.0.${R(20)}.${R(253)+2}`, eph = () => 32768 + R(28000);
+  const attacker = `10.0.${R(20)}.${R(253)+2}`;
+  let prow = [];
+  setInterval(() => {
+    if (!vis.has('m-pkt')) return;
+    const p = Math.random();
+    const line = p < .25 ? `<span class="r">IP ${attacker}.${eph()} &gt; 10.0.13.37.22: tcp 0</span>`
+      : p < .4 ? `IP ${ip4()}.${eph()} &gt; 10.0.0.2.53: UDP, length ${28 + R(30)}`
+      : p < .7 ? `<span class="g">IP ${ip4()}.${eph()} &gt; 10.0.13.37.443: tcp ${R(1400)+40}</span>`
+      : `IP 10.0.13.37.${[80,443,8080][R(3)]} &gt; ${ip4()}.${eph()}: tcp ${R(1448)}`;
+    prow.push(line); if (prow.length > 12) prow.shift(); pkt.innerHTML = prow.join('\n');
+  }, 300);
+
+  /* network graph (decorative) */
+  const cv = document.getElementById('m-net'), ctx = cv.getContext('2d'); io.observe(cv);
+  let nodes = [], W = 0, Hh = 0, tick = 0;
+  function sz(){ const r = cv.getBoundingClientRect(); const d = Math.min(devicePixelRatio||1,2); W = r.width; Hh = r.height; cv.width = W*d; cv.height = Hh*d; ctx.setTransform(d,0,0,d,0,0);
+    nodes = Array.from({length:12},(_,i)=>({x:20+Math.random()*(W-40),y:20+Math.random()*(Hh-40),vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,hit:i===0})); }
+  sz(); addEventListener('resize', sz);
+  (function draw(){
+    requestAnimationFrame(draw);
+    if (!vis.has('m-net')) return;
+    tick++; ctx.clearRect(0,0,W,Hh);
+    nodes.forEach(n => { n.x+=n.vx; n.y+=n.vy; if(n.x<14||n.x>W-14) n.vx*=-1; if(n.y<14||n.y>Hh-14) n.vy*=-1; });
+    if (tick % 90 === 0) nodes[R(nodes.length)].hit = true;
+    for (let i=0;i<nodes.length;i++) for (let j=i+1;j<nodes.length;j++){ const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y); if (d<110){ ctx.strokeStyle = (a.hit&&b.hit)?`rgba(61,255,154,${.6-d/250})`:`rgba(125,139,136,${.25-d/500})`; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); } }
+    nodes.forEach((n,i) => { ctx.fillStyle = n.hit ? '#3dff9a' : '#3a4644'; ctx.beginPath(); ctx.arc(n.x,n.y,i===0?4:2.5,0,7); ctx.fill();
+      if (n.hit){ const r = (tick%60)/60*14; ctx.strokeStyle=`rgba(61,255,154,${1-r/14})`; ctx.beginPath(); ctx.arc(n.x,n.y,4+r,0,7); ctx.stroke(); }
+      ctx.fillStyle='#3a4644'; ctx.font='9px JetBrains Mono, monospace'; ctx.fillText(`10.0.13.${10+i*7}`, n.x+6, n.y-6); });
+    if (nodes.every(n=>n.hit)) nodes.forEach((n,i)=>n.hit=i===0);
+  })();
+
+  /* practice CTF board */
+  const board = document.getElementById('m-board');
+  const cats = ['WEB','PWN','REV','FORENSIC','CRYPTO'], pts = [100,200,300,400];
+  board.innerHTML = cats.map(c => `<div class="col"><div class="h">${c}</div>${pts.map(p=>`<div class="c">${p}</div>`).join('')}</div>`).join('');
+  const cells = [...board.querySelectorAll('.c')]; io.observe(board);
+  setInterval(() => {
+    if (!vis.has('m-board')) return;
+    const open = cells.filter(c => !c.classList.contains('ok'));
+    if (!open.length){ cells.forEach(c => c.className='c'); return; }
+    const c = open[R(open.length)];
+    if (c.classList.contains('try')) { c.classList.remove('try'); c.classList.add('ok'); } else c.classList.add('try');
+  }, 700);
+})();
+</script>
+</body>
+</html>
